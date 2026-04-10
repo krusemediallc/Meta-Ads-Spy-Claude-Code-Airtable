@@ -1,0 +1,36 @@
+{
+  "table_name": "Competitor Ads",
+  "description": "Competitor ads scraped from the Meta Ad Library.",
+  "fields": [
+    { "name": "Competitor Ad Name", "type": "singleLineText", "description": "Short descriptive name generated for this ad" },
+    { "name": "Facebook Page", "type": "singleLineText", "description": "Page name the ad runs from" },
+    { "name": "Page ID", "type": "singleLineText" },
+    { "name": "Creative", "type": "multipleAttachments", "description": "Image or video creative" },
+    { "name": "Ad Copy", "type": "multilineText" },
+    { "name": "Headline", "type": "singleLineText" },
+    { "name": "Description", "type": "multilineText" },
+    { "name": "CTA Caption", "type": "singleLineText", "description": "Link caption shown under the headline" },
+    { "name": "Landing Page URL", "type": "url" },
+    { "name": "Ad Library ID", "type": "singleLineText" },
+    { "name": "Ad Library URL", "type": "url" },
+    { "name": "Start Date", "type": "date", "options": { "dateFormat": { "name": "iso" } } },
+    { "name": "Last Seen Date", "type": "date", "options": { "dateFormat": { "name": "iso" } } },
+    { "name": "Active Status", "type": "singleSelect", "options": { "choices": [
+      { "name": "Active", "color": "greenBright" },
+      { "name": "Inactive", "color": "grayBright" }
+    ] } },
+    { "name": "Platforms", "type": "multipleSelects", "options": { "choices": [
+      { "name": "Facebook", "color": "blueBright" },
+      { "name": "Instagram", "color": "pinkBright" },
+      { "name": "Messenger", "color": "cyanBright" },
+      { "name": "Audience Network", "color": "purpleBright" },
+      { "name": "Threads", "color": "grayBright" },
+      { "name": "WhatsApp", "color": "greenBright" }
+    ] } },
+    { "name": "Languages", "type": "singleLineText" },
+    { "name": "Days Running", "type": "number", "options": { "precision": 0 }, "description": "How many days the ad has been live. Longer = likely higher performing." },
+    { "name": "Target Ages", "type": "singleLineText" },
+    { "name": "Target Locations", "type": "multilineText" },
+    { "name": "Video Transcription", "type": "multilineText", "description": "Auto-transcribed audio from video ads (via OpenAI Whisper, local)" }
+  ]
+}
