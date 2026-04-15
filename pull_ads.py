@@ -114,6 +114,7 @@ def build_row(page_input: str, ad: dict, creatives: list) -> dict:
         "target_ages": _ages(ad.get("target_ages")),
         "target_locations": _locations(ad.get("target_locations")),
         "creative_urls": [{"url": c.url, "type": c.media_type} for c in creatives],
+        "creative_type": "Video" if any(c.media_type == "video" for c in creatives) else ("Image" if creatives else ""),
         "video_transcription": "",
     }
 
@@ -125,6 +126,7 @@ FIELD_NAME_MAP = {
     "competitor_ad_name": "Competitor Ad Name",
     "facebook_page": "Facebook Page",
     "page_id": "Page ID",
+    "creative_type": "Creative Type",
     "ad_copy": "Ad Copy",
     "headline": "Headline",
     "description": "Description",

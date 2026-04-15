@@ -6,6 +6,10 @@
     { "name": "Facebook Page", "type": "singleLineText", "description": "Page name the ad runs from" },
     { "name": "Page ID", "type": "singleLineText" },
     { "name": "Creative", "type": "multipleAttachments", "description": "Image or video creative" },
+    { "name": "Creative Type", "type": "singleSelect", "options": { "choices": [
+      { "name": "Image", "color": "blueBright" },
+      { "name": "Video", "color": "purpleBright" }
+    ] } },
     { "name": "Ad Copy", "type": "multilineText" },
     { "name": "Headline", "type": "singleLineText" },
     { "name": "Description", "type": "multilineText" },
