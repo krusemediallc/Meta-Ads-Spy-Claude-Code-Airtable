@@ -118,16 +118,29 @@ def resolve_page_id(identifier: str, token: str) -> tuple[Optional[str], Optiona
         ads = data.get("data", [])
         counts = Counter(ad.get("page_id") for ad in ads if ad.get("page_id"))
         names = {ad.get("page_id"): ad.get("page_name") for ad in ads}
-        ident_lower = identifier.lower().replace(".", " ").replace("_", " ")
-        # Prefer pages whose name contains the search term
-        for pid, _ in counts.most_common(10):
-            pname = (names.get(pid) or "").lower()
-            parts = [p for p in ident_lower.split() if len(p) > 2]
-            if ident_lower in pname or (parts and all(p in pname for p in parts)):
-                return pid, names.get(pid)
-        if counts:
-            pid = counts.most_common(1)[0][0]
-            return pid, names.get(pid)
+        ident_lower = identifier.lower().replace(".", " ").replace("_", " ").strip()
+        ident_parts = [p for p in ident_lower.split() if len(p) >= 2]
+
+        # Pass 1: exact page_name match (case-insensitive)
+        for pid, pname in names.items():
+            if (pname or "").lower().strip() == ident_lower:
+                return pid, pname
+
+        # Pass 2: page_name STARTS with identifier (e.g. "Chase Dimond Inc")
+        for pid, pname in names.items():
+            if (pname or "").lower().strip().startswith(ident_lower):
+                return pid, pname
+
+        # Pass 3: page_name contains every word of identifier (len > 2)
+        # Walk by ad-count rank so the most-prolific matching page wins
+        if ident_parts:
+            for pid, _ in counts.most_common():
+                pname_lower = (names.get(pid) or "").lower()
+                if all(p in pname_lower for p in ident_parts):
+                    return pid, names.get(pid)
+
+        # No confident match — do NOT guess. Return None and let the caller skip.
+        return None, None
     except Exception:
         pass
     return None, None
