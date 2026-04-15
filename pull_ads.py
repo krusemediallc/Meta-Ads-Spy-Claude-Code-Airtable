@@ -20,6 +20,7 @@ import os
 import re
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from pathlib import Path
 
@@ -243,16 +244,11 @@ def main() -> None:
     if not page_inputs:
         sys.exit("No pages provided.")
 
-    all_rows: list[dict] = []
-
-    for page_input in page_inputs:
-        print(f"\n==> {page_input}", flush=True)
+    # ── Phase 1: Resolve all page IDs + fetch all ads in parallel ──
+    def fetch_one_page(page_input: str):
         pid, resolved_name = resolve_page_id(page_input, token)
         if not pid:
-            print(f"    could not resolve page ID. Skipping.", flush=True)
-            continue
-        print(f"    page_id={pid}" + (f" ({resolved_name})" if resolved_name else ""), flush=True)
-
+            return page_input, None, None, "could not resolve page ID"
         ads, err = fetch_ads_for_page(
             pid, token,
             countries=args.countries,
@@ -262,26 +258,44 @@ def main() -> None:
             ad_active_status="ACTIVE" if args.active_only else "ALL",
             media_type=args.media_type,
         )
-        if err:
-            print(f"    API error: {err}", flush=True)
-            continue
-        print(f"    found {len(ads)} ads", flush=True)
-        if not ads:
-            continue
+        return page_input, ads or [], resolved_name, err
 
-        creatives_by_ad: dict = {}
-        if not args.skip_creatives:
-            snapshot_pairs = [
-                (a["id"], a["ad_snapshot_url"])
-                for a in ads if a.get("ad_snapshot_url")
-            ]
-            if snapshot_pairs:
-                creatives_by_ad = extract_batch(
-                    snapshot_pairs,
-                    headless=not args.no_headless,
-                    workers=args.workers,
-                )
+    t0 = time.time()
+    print(f"\n[phase 1] fetching ads for {len(page_inputs)} pages in parallel...", flush=True)
+    pages_with_ads: list[tuple[str, list[dict]]] = []
+    with ThreadPoolExecutor(max_workers=min(len(page_inputs), 8)) as pool:
+        futures = {pool.submit(fetch_one_page, p): p for p in page_inputs}
+        for future in as_completed(futures):
+            page_input, ads, resolved_name, err = future.result()
+            if err:
+                print(f"  {page_input}: {err}", flush=True)
+                continue
+            print(f"  {page_input}: {len(ads)} ads" + (f" ({resolved_name})" if resolved_name else ""), flush=True)
+            pages_with_ads.append((page_input, ads))
+    print(f"[phase 1] done in {time.time()-t0:.1f}s — {sum(len(a) for _, a in pages_with_ads)} total ads", flush=True)
 
+    # ── Phase 2: Single pooled Selenium extraction across ALL ads ──
+    creatives_by_ad: dict = {}
+    if not args.skip_creatives:
+        all_snapshot_pairs = [
+            (a["id"], a["ad_snapshot_url"])
+            for _, ads in pages_with_ads
+            for a in ads
+            if a.get("ad_snapshot_url")
+        ]
+        if all_snapshot_pairs:
+            t0 = time.time()
+            print(f"\n[phase 2] extracting {len(all_snapshot_pairs)} creatives...", flush=True)
+            creatives_by_ad = extract_batch(
+                all_snapshot_pairs,
+                headless=not args.no_headless,
+                workers=args.workers,
+            )
+            print(f"[phase 2] done in {time.time()-t0:.1f}s", flush=True)
+
+    # ── Phase 3: Build all rows ──
+    all_rows: list[dict] = []
+    for page_input, ads in pages_with_ads:
         for a in ads:
             all_rows.append(build_row(page_input, a, creatives_by_ad.get(a["id"], [])))
 
