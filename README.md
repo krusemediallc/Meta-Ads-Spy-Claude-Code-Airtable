@@ -2,6 +2,18 @@
 
 Pull your competitors' ads from the Meta Ad Library straight into Airtable — ad copy, headlines, creatives (images + videos), targeting, platforms, and more.
 
+---
+
+### Want to go deeper?
+This template is just one piece of the puzzle. Inside my **[Mr Paid Social community on Skool](https://skool.com/mrpaidsocial)** you'll get:
+- Hands-on help with this scraper (and every other AI ad tool I build)
+- A growing library of AI workflows for creative, copy, and media buying
+- Live trainings and a community of media buyers leveling up their Meta ads with AI
+
+**[Join us at skool.com/mrpaidsocial →](https://skool.com/mrpaidsocial)**
+
+---
+
 ## Getting Started
 
 ### 1. Open Claude Code
